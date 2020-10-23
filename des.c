@@ -96,25 +96,41 @@ char* Feistel(char* R,char* key){
 char* DES_4r(char* ptxt,char* key){
     char* L = strcut(ptxt,0,6);
     char* R = strcut(ptxt,6,12);
-    printf("%s%s\n",L,R);
+    //printf("%s%s\n",L,R);
 
     for(int i=2;i<=4;i++){
         char* temp = Feistel(R,keyNTH(key,i));
         temp = XOR(L,temp,6);
         L=R;
         R=temp;
-        printf("%s%s\n",L,R);
+        //printf("%s%s\n",L,R);
     }
     char* output = malloc(sizeof(char*)*12+1);
+    strcat(output,L);
+    strcat(output,R);
+
     output[12]='\0';
     return output;
+}
+
+char* att(char* ctxt,char* actxt){
+    char* L = strcut(ctxt,0,6);
+    char* Ls = strcut(actxt,0,6);
+
+    char* outL = E(XOR(L,Ls,6));
 }
 
 int main(){    
     char* ptxt = "000111011011";
     char* key = "001001101";
 
-    printf("%s\n",DES_4r(ptxt,key));
+    char* aptxt = "000000011011";
+
+    char* ctxt = DES_4r(ptxt,key);
+    char* actxt = DES_4r(aptxt,key);
+
+    printf("%s -> %s\n",ptxt,ctxt);
+    printf("%s -> %s\n",aptxt,actxt);
 
     return 0;
 }
