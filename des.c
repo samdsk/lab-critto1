@@ -10,6 +10,12 @@ struct node{
 };
 typedef struct node* List;
 
+List newList(){
+    List l = malloc(sizeof(List));
+    l->s=NULL;
+    l->next = NULL;
+    return l;
+}
 List insert(List l, String s){
     List n = malloc(sizeof(List));
     n->s = malloc(sizeof(String)*16);
@@ -137,7 +143,7 @@ char* DES_4r(char* ptxt){
 }
 
 List genCombinations(String si,String so,int sbox){
-    List l = malloc(sizeof(List));
+    List l = NULL;
     for(int i=0;i<16;i++){
         for(int j=0;j<16;j++){
             if(strcmp(si,XOR(bitcomb[i],bitcomb[j],4))==0){
@@ -149,10 +155,11 @@ List genCombinations(String si,String so,int sbox){
                 }
 
                 if(strcmp(sout,so)==0){
+                    printf("%s-%s\n",sout,so);
                     String s = malloc(sizeof(String)*16);
                     strcat(s,bitcomb[i]);
                     strcat(s,bitcomb[j]);
-                    //printf("%d-%.*s|%.*s\n",sbox,4,s,4,s+4);
+                    printf("%d - %.*s|%.*s\n",sbox,4,s,4,s+4);
                     l = insert(l,s);
                 }
             }
@@ -162,7 +169,7 @@ List genCombinations(String si,String so,int sbox){
     return l;
 }
 
-char*** genComb(char* si,char *so, int s_box){
+/*char*** genComb(char* si,char *so, int s_box){
     char*** output = malloc(sizeof(char*)*16);
     for(int i=0;i<16;i++){
         output[i] = malloc(sizeof(char*)*2);
@@ -203,15 +210,16 @@ char*** genComb(char* si,char *so, int s_box){
 
     return output;
 }
+*/
 
 List findKey(List l1, List l2){
-    List keys = malloc(sizeof(List));
-    
-    for(List curr1=l1;curr1->next!=NULL;curr1=curr1->next){
-        for(List curr2=l2;curr2->next!=NULL;curr2=curr2->next){
-            //printf("curr1: %s - curr2: %s\n",curr1->s,curr2->s);
+    List keys = NULL;
+    printf("Starting... FindKey\n");
+    for(List curr1=l1;curr1!=NULL;curr1=curr1->next){
+        for(List curr2=l2;curr2!=NULL;curr2=curr2->next){
+            printf("curr1: %s - curr2: %s\n",curr1->s,curr2->s);
             if(strcmp(curr1->s,curr2->s)==0){
-                //printf("Found a key: %s\n",curr1->s);
+                printf("Found a key: %s\n",curr1->s);
                 keys = insert(keys,curr1->s);
             }
         }
@@ -230,7 +238,7 @@ List att(char* ptxt,char* aptxt){
 
     char* L4e = E(L4);
     char* L4se = E(L4s);
-    char* L4L4s = XOR(L4e,L4se,8);
+    char* L4L4s = E(XOR(L4,L4s,8));
 
     char* R4 = strcut(ctxt,6,12);
     char* R4s = strcut(actxt,6,12);
@@ -241,48 +249,30 @@ List att(char* ptxt,char* aptxt){
     char* L1p = XOR(L1,L1s,6);
 
     char* R4pL1p = XOR(R4p,L1p,6);
-
-    //printf("E(L4 xor L4s) = %s\n",L4L4s);
-    //printf("R4p xor L1p = %s\n",R4pL1p);
-    //char*** sd = genComb(strcut(L4L4s,0,4));
-    /*char*** sd1 = genComb("1010","010",0);
-    char*** sd2 = genComb("1011","100",2);
-
-    for(int i=0;i<16;i++){        
-        printf("%d:%s|%s\n",i,sd1[i][0],sd1[i][1]);
-        printf("%d:%s|%s\n",i,sd2[i][0],sd2[i][1]);
-    }
-    for(int i=0;i<16;i++){
-        if(sd1[i][0][0] !='\0'){
-            printf("prima %s\n",XOR(strcut(L4e,0,4),sd1[i][0],4));
-        }
-        if(sd2[i][0][0] !='\0'){
-            printf("%s\n",XOR(strcut(L4e,4,8),sd2[i][0],4));
-        }
-    }
-    */
+    printf("E(L4 xor L4*) = %s\n",L4L4s);
+    printf("R4' xor L1' = %s\n",R4pL1p);
 
     List l1 = genCombinations(strcut(L4L4s,0,4),strcut(R4pL1p,0,3),0);
     List l2 = genCombinations(strcut(L4L4s,4,8),strcut(R4pL1p,3,6),1);
-    List kf = malloc(sizeof(List));
-    List kl = malloc(sizeof(List));
+    List kf = NULL;
+    List kl = NULL;
 
-    List keys = malloc(sizeof(List));
+    List keys = NULL;
 
-    for(List current=l1;current->next!=NULL;current=current->next){
-        //if(current==NULL) break;
-        kf = insert(kf,XOR(strcut(L4e,0,4),strcut(current->s,0,4),4));
-        //printf("kf - %s\n",current->s);
-    }
-    //printf("l2 start \n");
-
-    for(List current=l1;current->next!=NULL;current=current->next){        
-        kl = insert(kl,XOR(strcut(L4e,0,4),strcut(current->s,0,4),4));
-        //printf("kl - %s\n",current->s);
+    List current = l1;
+    while(current!=NULL){
+      kf = insert(kf,XOR(strcut(L4e,0,4),strcut(current->s,0,4),4));
+      current = current->next; 
     }
 
-    for(List currentf=kf;currentf->next!=NULL;currentf=currentf->next){
-        for(List currentl=kl;currentl->next!=NULL;currentl=currentl->next){
+    current = l2;
+    while(current!=NULL){
+        kl = insert(kl,XOR(strcut(L4e,4,8),strcut(current->s,0,4),4));
+        current = current->next; 
+    }
+
+    for(List currentf=kf;currentf!=NULL;currentf=currentf->next){
+        for(List currentl=kl;currentl!=NULL;currentl=currentl->next){
             String s = malloc(sizeof(String)*16);
             s=strcat(s,currentf->s);
             s=strcat(s,currentl->s);
@@ -290,20 +280,20 @@ List att(char* ptxt,char* aptxt){
             keys = insert(keys,s);
         }
     }
-    /*
+    
     for(List current=keys;current!=NULL;current=current->next){        
         printf("keys - %s\n",current->s);
     }
-    */
+    
     
     return keys;
 }
 
 int main(){    
-    char* ptxt = "000111011011";
-    char* aptxt = "000000011011";
+    char* ptxt =  "000111011011";
+    char* aptxt = "101110011011";
 
-    char* ctxt = DES_4r(ptxt);
+    char* ctxt = DES_4r(ptxt); 
     char* actxt = DES_4r(aptxt);
     
     printf("%s -> %s\n",ptxt,ctxt);
@@ -314,12 +304,19 @@ int main(){
     List lll = att(ptxt,"011000011011");
     List llll = att(ptxt,"011100011011");
     List key = findKey(l,ll);
-    key = findKey(key,lll);
-    key = findKey(key,llll);
 
-    for(List curr1=key;curr1->next!=NULL;curr1=curr1->next){
+    for(List curr1=key;curr1!=NULL;curr1=curr1->next){
         printf("Keys: %s\n",curr1->s);
     }
+
+    key = findKey(key,llll);
+
+    for(List curr1=key;curr1!=NULL;curr1=curr1->next){
+        printf("Keys: %s\n",curr1->s);
+    }
+    //key = findKey(key,llll);
+
+
 
 
     return 0;
