@@ -10,12 +10,6 @@ struct node{
 };
 typedef struct node* List;
 
-List newList(){
-    List l = malloc(sizeof(List));
-    l->s=NULL;
-    l->next = NULL;
-    return l;
-}
 List insert(List l, String s){
     List n = malloc(sizeof(List));
     n->s = malloc(sizeof(String)*16);
@@ -37,22 +31,22 @@ List deleteNode(List l,String s){
     free(current);
     return l;
 }
-
+//SBOX table 1
 char sbox1[2][8][4] = {
     {"101","010","001","110","011","100","111","000"},
     {"001","100","110","010","000","111","101","011"}
 };
-
+//SBOX table 2
 char sbox2[2][8][4] = {
     {"100","000","100","101","111","001","011","010"},
     {"101","011","000","111","110","010","001","100"}
 };
-
+//4Bit combinations
 char bitcomb[16][5] = {
-        "0000", "0001", "0010","0011","0100","0101","0111",
-        "1000", "1001", "1010","1011","1100","1101","1111"
+    "0000", "0001", "0010","0011","0100","0101","0111",
+    "1000", "1001", "1010","1011","1100","1101","1111"
 };
-
+//XOR of 2 strings of length l
 char* XOR(char* a,char* b,int l){
     char* output = malloc(sizeof(char*)*l+1);
     for(int i=0;i<l;i++){
@@ -65,7 +59,7 @@ char* XOR(char* a,char* b,int l){
     output[l+1]='\0';
     return output;
 }
-
+//Expanding function of DES from 6bit to 8bit
 char* E(char* s){
     char *output = malloc(sizeof(char*)*8+1);
     output[0]=s[0];
@@ -77,17 +71,16 @@ char* E(char* s){
     output[6]=s[4];
     output[7]=s[5];
     output[8]='\0';
-
     return output;
 }
-
+//SBOX of DES, takes sbox table & 4bit string -> 3bit string
 char* SBOX(char sbox[2][8][4],char*input){
     char fbit=input[0];
     int bit1 = atoi(&fbit);
     int bit234 = (int) strtol(++input,NULL,2);
     return sbox[bit1][bit234];
 }
-
+//Returns nth-key (8bit) of main key (9bit)
 char* keyNTH(char* key,int n){
     char *kn = malloc(sizeof(char*)*8+1);
     for(int i=n-1,count=0;count<8;count++){
@@ -97,7 +90,7 @@ char* keyNTH(char* key,int n){
     kn[8]='\0';
     return kn;
 }
-
+//String cutter
 char* strcut(char* str,int s,int f){
     char* output = malloc(sizeof(char*)*(f-s)+1);
     int pos=0;
@@ -107,7 +100,7 @@ char* strcut(char* str,int s,int f){
     output[pos]='\0';
     return output;
 }
-
+//DES' Feistel function
 char* Feistel(char* R,char* key){
     char* output = malloc(sizeof(char*)*6+1);
     char* Re = E(R);
@@ -120,7 +113,7 @@ char* Feistel(char* R,char* key){
     //printf("%s-%s SBOX %s\n",1,s2,output);
     return output;
 }
-
+//4-round DES (Simplified DES)
 char* DES_4r(char* ptxt){
     char* L = strcut(ptxt,0,6);
     char* R = strcut(ptxt,6,12);
@@ -141,7 +134,7 @@ char* DES_4r(char* ptxt){
     output[12]='\0';
     return output;
 }
-
+//Generate possible combinations of the nth-key
 List genCombinations(String si,String so,int sbox){
     List l = NULL;
     for(int i=0;i<16;i++){
@@ -169,49 +162,6 @@ List genCombinations(String si,String so,int sbox){
     return l;
 }
 
-/*char*** genComb(char* si,char *so, int s_box){
-    char*** output = malloc(sizeof(char*)*16);
-    for(int i=0;i<16;i++){
-        output[i] = malloc(sizeof(char*)*2);
-        for(int j=0;j<2;j++){
-            output[i][0]=malloc(sizeof(char*)*5);
-            output[i][1]=malloc(sizeof(char*)*5);
-        }
-    }
-
-    char bitcomb[16][5] = {
-        "0000", "0001", "0010","0011","0100","0101","0111",
-        "1000", "1001", "1010","1011","1100","1101","1111"
-    };
-
-    int k=0;
-
-    for(int i=0;i<16;i++){        
-        for(int j=0;j<16;j++){
-            if(strcmp(si,XOR(bitcomb[i],bitcomb[j],4))==0){
-
-                //printf("%s|%s\n",bitcomb[i],bitcomb[j]);
-                char* sout = NULL;
-
-                if(s_box==0){
-                    sout = XOR(SBOX(sbox1,bitcomb[i]),SBOX(sbox1,bitcomb[j]),3);
-                }else{                    
-                    sout = XOR(SBOX(sbox2,bitcomb[i]),SBOX(sbox2,bitcomb[j]),3);                    
-                }
-                
-                if(strcmp(sout,so)==0){
-                    strcat(output[k][0],bitcomb[i]);
-                    strcat(output[k][1],bitcomb[j]);
-                    k++;
-                }               
-            }            
-        }
-    }
-
-    return output;
-}
-*/
-
 List findKey(List l1, List l2){
     List keys = NULL;
     printf("Starting... FindKey\n");
@@ -224,10 +174,9 @@ List findKey(List l1, List l2){
             }
         }
     }
-
     return keys;
 }
-
+//Attack function
 List att(char* ptxt,char* aptxt){
 
     char* ctxt = DES_4r(ptxt);
@@ -254,12 +203,11 @@ List att(char* ptxt,char* aptxt){
 
     List l1 = genCombinations(strcut(L4L4s,0,4),strcut(R4pL1p,0,3),0);
     List l2 = genCombinations(strcut(L4L4s,4,8),strcut(R4pL1p,3,6),1);
-    List kf = NULL;
-    List kl = NULL;
-
-    List keys = NULL;
+    
+    List kf = NULL, kl = NULL, keys = NULL;
 
     List current = l1;
+
     while(current!=NULL){
       kf = insert(kf,XOR(strcut(L4e,0,4),strcut(current->s,0,4),4));
       current = current->next; 
@@ -280,12 +228,7 @@ List att(char* ptxt,char* aptxt){
             keys = insert(keys,s);
         }
     }
-    
-    for(List current=keys;current!=NULL;current=current->next){        
-        printf("keys - %s\n",current->s);
-    }
-    
-    
+
     return keys;
 }
 
@@ -315,9 +258,6 @@ int main(){
         printf("Keys: %s\n",curr1->s);
     }
     //key = findKey(key,llll);
-
-
-
-
+    
     return 0;
 }
