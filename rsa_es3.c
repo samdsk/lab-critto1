@@ -11,7 +11,7 @@ const long int n1 = 166788761;
 const long int n2 = 171405041;
 
 
-void find_pq(long int* p, long int* q, const long int n);
+void find_pq(long int*, long int*, const long int);
 
 int main(){
 
