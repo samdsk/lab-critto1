@@ -1,2 +1,2 @@
 # lab-critto1
-Esercizi di Crittografia_1 @unimi_inf
+Esercizi Lab di Crittografia_1  @ Unimi informatica
